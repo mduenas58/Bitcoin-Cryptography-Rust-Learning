@@ -4,24 +4,39 @@
     "type": "split",
     "children": [
       {
-        "id": "8a102ade7a6c389b",
+        "id": "4545352abb65b55c",
         "type": "tabs",
         "children": [
           {
-            "id": "e3910e07d8bad0c9",
+            "id": "3e03e614a787711b",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "course-05-kubernetes-basics/Roadmap for learning Kubernetes in 6 months(Gemini).md",
+                "file": "course-01-devops-prerequisites/Deep Dive into Systemctl & Systemd.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Roadmap for learning Kubernetes in 6 months(Gemini)"
+              "title": "Deep Dive into Systemctl & Systemd"
+            }
+          },
+          {
+            "id": "700eed2d931776fd",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "course-01-devops-prerequisites/Deep Dive into APIs-Concepts and Examples.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Deep Dive into APIs-Concepts and Examples"
             }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -183,10 +198,13 @@
       "bases:Create new base": false
     }
   },
-  "active": "deb8ea1f7b44323e",
+  "active": "700eed2d931776fd",
   "lastOpenFiles": [
-    "course-02-git-basics/LAB--Clone GitHub Repository and Set Up SSH for Commits.md",
+    "course-01-devops-prerequisites/Deep Dive into Systemctl & Systemd.md",
+    "course-01-devops-prerequisites/Deep Dive into APIs-Concepts and Examples.md",
+    "course-04-docker-basics/Bash script installs Docker and related tools on a Debian.md",
     "course-05-kubernetes-basics/Roadmap for learning Kubernetes in 6 months(Gemini).md",
+    "course-02-git-basics/LAB--Clone GitHub Repository and Set Up SSH for Commits.md",
     "course-02-git-basics/Git Introduction.md",
     "course-01-devops-prerequisites/Core Architecture systemd.md",
     "course-01-devops-prerequisites/LAB-- Exploring systemd in Practice.md",
