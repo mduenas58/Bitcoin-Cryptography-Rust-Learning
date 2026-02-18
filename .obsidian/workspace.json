@@ -4,39 +4,95 @@
     "type": "split",
     "children": [
       {
-        "id": "4545352abb65b55c",
+        "id": "c064d6f4ec6e3e0c",
         "type": "tabs",
         "children": [
           {
-            "id": "3e03e614a787711b",
+            "id": "e40b060994a82a01",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "course-01-devops-prerequisites/Deep Dive into Systemctl & Systemd.md",
+                "file": "course-05-kubernetes-basics/Container Orchestrator- Comprehensive Guide.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Deep Dive into Systemctl & Systemd"
+              "title": "Container Orchestrator- Comprehensive Guide"
             }
           },
           {
-            "id": "700eed2d931776fd",
+            "id": "e096240a1fd9f5e8",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "course-01-devops-prerequisites/Deep Dive into APIs-Concepts and Examples.md",
+                "file": "course-05-kubernetes-basics/The Six Pillars of Kubernetes Orchestration.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Deep Dive into APIs-Concepts and Examples"
+              "title": "The Six Pillars of Kubernetes Orchestration"
+            }
+          },
+          {
+            "id": "2d3abfe421ae69b3",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "course-05-kubernetes-basics/Red Hat OpenShift- Comprehensive Guide.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Red Hat OpenShift- Comprehensive Guide"
+            }
+          },
+          {
+            "id": "3703147248457aa8",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "course-02-git-basics/Comprehensive Git Lab--Collaborative Node.js Website Development.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Comprehensive Git Lab--Collaborative Node.js Website Development"
+            }
+          },
+          {
+            "id": "aa85b42f3d347609",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "course-02-git-basics/LAB--hands-on Git lab.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "LAB--hands-on Git lab"
+            }
+          },
+          {
+            "id": "e06c0a6344be260d",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "course-02-git-basics/LAB--Collaborative Node.js Website Development.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "LAB--Collaborative Node.js Website Development"
             }
           }
         ],
-        "currentTab": 1
+        "currentTab": 5
       }
     ],
     "direction": "vertical"
@@ -198,8 +254,17 @@
       "bases:Create new base": false
     }
   },
-  "active": "700eed2d931776fd",
+  "active": "deb8ea1f7b44323e",
   "lastOpenFiles": [
+    "course-02-git-basics/LAB--hands-on Git lab.md",
+    "course-02-git-basics/LAB--Collaborative Node.js Website Development.md",
+    "course-02-git-basics/Comprehensive Git Lab--Collaborative Node.js Website Development.md",
+    "course-05-kubernetes-basics/Red Hat OpenShift- Comprehensive Guide.md",
+    "course-05-kubernetes-basics/The Six Pillars of Kubernetes Orchestration.md",
+    "course-05-kubernetes-basics/Container Orchestrator- Comprehensive Guide.md",
+    "course-02-git-basics/Guide to create a GitHub repository for Obsidian.md",
+    "course-04-docker-basics/Container Engines- Comprehensive Guide.md",
+    "course-04-docker-basics/Open Container Iniciative (OCI).md",
     "course-01-devops-prerequisites/Deep Dive into Systemctl & Systemd.md",
     "course-01-devops-prerequisites/Deep Dive into APIs-Concepts and Examples.md",
     "course-04-docker-basics/Bash script installs Docker and related tools on a Debian.md",
