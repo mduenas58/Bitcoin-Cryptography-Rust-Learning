@@ -20,37 +20,8 @@
               "icon": "lucide-file",
               "title": "Welcome"
             }
-          },
-          {
-            "id": "3fda9f80f3836f5e",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "course-01-devops-prerequisites/Specific Linux skills.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "Specific Linux skills"
-            }
-          },
-          {
-            "id": "3ed537b29b8992cc",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "course-03-jenkins-beginners/Comprehensive Jenkins Tutorial.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "Comprehensive Jenkins Tutorial"
-            }
           }
-        ],
-        "currentTab": 2
+        ]
       }
     ],
     "direction": "vertical"
@@ -107,7 +78,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 272.5
   },
   "right": {
     "id": "9b8849987e08bdaa",
@@ -214,8 +185,14 @@
   },
   "active": "deb8ea1f7b44323e",
   "lastOpenFiles": [
-    "course-01-devops-prerequisites/Specific Linux skills.md",
+    "course-05-kubernetes-basics/etcd's Role in Kubernetes.md",
+    "course-05-kubernetes-basics/LAB--Kubernetes YAML Manifests.md",
+    "course-05-kubernetes-basics/`kubectl` Command Reference.md",
+    "course-05-kubernetes-basics/Building blocks of every Kubernetes cluster.md",
     "course-03-jenkins-beginners/Comprehensive Jenkins Tutorial.md",
+    "PROJECT-02-YAML Validator/config.py",
+    "PROJECT-02-YAML Validator/requirements.txt",
+    "course-01-devops-prerequisites/Specific Linux skills.md",
     "course-05-kubernetes-basics/LAB--Setting Up VIM as a Kubernetes-System Administration IDE.md",
     "Welcome.md",
     "PROJECT-02-YAML Validator/YAML Validator Web Application.md",
@@ -237,18 +214,12 @@
     "course-01-devops-prerequisites/Deep Dive into Systemctl & Systemd.md",
     "course-01-devops-prerequisites/Deep Dive into APIs-Concepts and Examples.md",
     "course-04-docker-basics/Bash script installs Docker and related tools on a Debian.md",
-    "course-05-kubernetes-basics/Roadmap for learning Kubernetes in 6 months(Gemini).md",
-    "course-02-git-basics/LAB--Clone GitHub Repository and Set Up SSH for Commits.md",
-    "course-02-git-basics/Git Introduction.md",
-    "course-01-devops-prerequisites/Core Architecture systemd.md",
     "PROJECT-01",
     "course-08-python-basics",
     "course-07-terraform-basics",
     "course-06-ansible-basics",
     "course-05-kubernetes-basics",
     "course-04-docker-basics",
-    "course-03-jenkins-beginners",
-    "course-02-git-basics",
-    "course-01-devops-prerequisites/projects"
+    "course-03-jenkins-beginners"
   ]
 }
