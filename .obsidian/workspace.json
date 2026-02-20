@@ -48,9 +48,23 @@
               "icon": "lucide-file",
               "title": "LAB--Docker run-Jenkins with Persistent Storage"
             }
+          },
+          {
+            "id": "5c548fa5c1682b1e",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "course-01-devops-prerequisites/LAB--Building, Containerizing, and Orchestrating Node.js Applications.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "LAB--Building, Containerizing, and Orchestrating Node.js Applications"
+            }
           }
         ],
-        "currentTab": 2
+        "currentTab": 3
       }
     ],
     "direction": "vertical"
@@ -214,8 +228,9 @@
   },
   "active": "deb8ea1f7b44323e",
   "lastOpenFiles": [
-    "course-01-devops-prerequisites/Complete Guide to Configuring Tmux Plugins.md",
     "course-04-docker-basics/LAB--Docker run-Jenkins with Persistent Storage.md",
+    "course-01-devops-prerequisites/LAB--Building, Containerizing, and Orchestrating Node.js Applications.md",
+    "course-01-devops-prerequisites/Complete Guide to Configuring Tmux Plugins.md",
     "course-04-docker-basics/Comprehensive Definition of Microservices.md",
     "course-04-docker-basics/Container & Orchestration Learning Roadmap.md",
     "course-01-devops-prerequisites/Lab-- Hands-On Tmux - Terminal Multiplier.md",
@@ -242,7 +257,6 @@
     "course-04-docker-basics/Install Docker Engine on Fedora.md",
     "course-02-git-basics/LAB--Collaborative Node.js Website Development.md",
     "course-02-git-basics/LAB--hands-on Git lab.md",
-    "course-02-git-basics/Comprehensive Git Lab--Collaborative Node.js Website Development.md",
     "PROJECT-01",
     "course-08-python-basics",
     "course-07-terraform-basics",
