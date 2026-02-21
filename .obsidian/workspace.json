@@ -4,21 +4,17 @@
     "type": "split",
     "children": [
       {
-        "id": "1892f4b25fa7d663",
+        "id": "9b86795b870a4586",
         "type": "tabs",
         "children": [
           {
-            "id": "ece359a0fa98dbd2",
+            "id": "526262b7c668224b",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "course-01-devops-prerequisites/Module 3 – Applications Basics/Deep Dive into APIs-Concepts and Examples.md",
-                "mode": "source",
-                "source": false
-              },
+              "type": "empty",
+              "state": {},
               "icon": "lucide-file",
-              "title": "Deep Dive into APIs-Concepts and Examples"
+              "title": "New tab"
             }
           }
         ]
@@ -185,41 +181,40 @@
   },
   "active": "deb8ea1f7b44323e",
   "lastOpenFiles": [
+    "course-03-jenkins-beginners/Module 5 - Labs/Comprehensive Jenkins Tutorial.md",
+    "course-04-docker-basics/Module 6 - Labs",
+    "course-04-docker-basics/Module 5 – Docker Networking and Registry",
+    "course-04-docker-basics/Module 4 – Docker Engine and Storage",
+    "course-04-docker-basics/Module 3 – Docker Images",
+    "course-04-docker-basics/Module 2 – Docker Run",
+    "course-04-docker-basics/Module 1 – Setting up Docker and Basic Docker Commands",
+    "course-03-jenkins-beginners/Module 5 - Labs",
+    "course-02-git-basics/Module 3 - Labs/Guide to create a GitHub repository for Obsidian.md",
+    "course-03-jenkins-beginners/Module 4 – Jenkins Pipelines",
+    "course-03-jenkins-beginners/Module 3 – System Administration with Jenkinsfile",
+    "course-03-jenkins-beginners/Module 2 – Installing Jenkins",
+    "course-02-git-basics/Module 3 - Labs/Comprehensive Git Lab--Collaborative Node.js Website Development.md",
+    "course-02-git-basics/Module 3 - Labs/LAB--Clone GitHub Repository and Set Up SSH for Commits.md",
+    "course-01-devops-prerequisites/Module 3 – Applications Basics/Deep Dive into APIs-Concepts and Examples.md",
     "course-04-docker-basics/QEMU--The Universal Virtualizer.md",
     "course-01-devops-prerequisites/Module 1 – DevOps Tools and Linux/TMUX Comprehensive Cheat Sheet.md",
-    "course-01-devops-prerequisites/Module 3 – Applications Basics/Python",
-    "course-01-devops-prerequisites/Module 3 – Applications Basics/Node.js",
-    "course-01-devops-prerequisites/Module 3 – Applications Basics/Java",
     "course-01-devops-prerequisites/Module 1 – DevOps Tools and Linux/Complete Guide to Configuring Tmux Plugins.md",
     "course-01-devops-prerequisites/Module 1 – DevOps Tools and Linux/Deep Dive into Systemctl & Systemd.md",
     "course-01-devops-prerequisites/Module 4 - Labs/LAB--Tmux Your Terminal Multiplier.md",
     "course-01-devops-prerequisites/Module 4 - Labs/LAB--Building, Containerizing, and Orchestrating Node.js Applications.md",
     "course-01-devops-prerequisites/Module 4 - Labs/LAB-- Hands-On Tmux - Terminal Multiplier.md",
     "course-01-devops-prerequisites/Module 4 - Labs/LAB-- Exploring systemd in Practice.md",
-    "course-01-devops-prerequisites/Module 4 - Labs",
-    "course-01-devops-prerequisites/Module 3 – Applications Basics",
     "course-01-devops-prerequisites/Module 1 – DevOps Tools and Linux/Core Architecture systemd.md",
-    "course-01-devops-prerequisites/Module 2 – Networking",
     "course-04-docker-basics/Docker Network Creation Command.md",
-    "course-01-devops-prerequisites/Module 1 – DevOps Tools and Linux",
     "Welcome.md",
-    "course-04-docker-basics/LAB--Docker run-Jenkins with Persistent Storage.md",
+    "course-04-docker-basics/Module 6 - Labs/LAB--Docker run-Jenkins with Persistent Storage.md",
     "PROJECT-01/Maintainers.md",
     "PROJECT-03-Collaborative Node.js Website Development/LAB--Collaborative Node.js Website Development.md",
-    "PROJECT-03-Collaborative Node.js Website Development",
-    "course-02-git-basics/LAB--hands-on Git lab.md",
+    "course-02-git-basics/Module 3 - Labs/LAB--hands-on Git lab.md",
     "PROJECT-04-Jenkins CI-CD Pipeline/LAB--Jenkins-CI-CD Pipeline for Python Application on GCP.md",
-    "PROJECT-04-Jenkins CI-CD Pipeline",
-    "course-03-jenkins-beginners/Comprehensive Jenkins Tutorial.md",
     "course-01-devops-prerequisites/Module 1 – DevOps Tools and Linux/Fixed .vimrc.md",
     "course-04-docker-basics/Comprehensive Definition of Microservices.md",
     "course-04-docker-basics/Container & Orchestration Learning Roadmap.md",
-    "course-04-docker-basics/Namespaces.md",
-    "course-04-docker-basics/Container & Orchestration Introduction.md",
-    "course-01-devops-prerequisites/Module 2 – Networking/Enable hostname resolution on a Linux system without using DNS.md",
-    "course-05-kubernetes-basics/LAB--Kubernetes YAML Manifests.md",
-    "PROJECT-02-YAML Validator/requirements.txt",
-    "course-05-kubernetes-basics/etcd's Role in Kubernetes.md",
-    "course-05-kubernetes-basics/`kubectl` Command Reference.md"
+    "course-04-docker-basics/Namespaces.md"
   ]
 }
