@@ -11,10 +11,14 @@
             "id": "915b643923a65ca8",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
+              "type": "markdown",
+              "state": {
+                "file": "course-04-docker-basics/🐳Complete Guide to Docker Compose--From Basics to Production.md",
+                "mode": "source",
+                "source": false
+              },
               "icon": "lucide-file",
-              "title": "New tab"
+              "title": "🐳Complete Guide to Docker Compose--From Basics to Production"
             }
           }
         ]
@@ -181,6 +185,7 @@
   },
   "active": "deb8ea1f7b44323e",
   "lastOpenFiles": [
+    "course-04-docker-basics/🐳Complete Guide to Docker Compose--From Basics to Production.md",
     "course-01-devops-prerequisites/Debugging scenarios.md",
     "course-04-docker-basics/🐳 Comprehensive Docker Commands Cheat Sheet.md",
     "course-01-devops-prerequisites/Difference between automating a task.md",
@@ -215,7 +220,6 @@
     "course-01-devops-prerequisites/Module 1 – DevOps Tools and Linux/Deep Dive into Systemctl & Systemd.md",
     "course-01-devops-prerequisites/Module 4 - Labs/LAB--Tmux Your Terminal Multiplier.md",
     "course-01-devops-prerequisites/Module 4 - Labs/LAB--Building, Containerizing, and Orchestrating Node.js Applications.md",
-    "course-01-devops-prerequisites/Module 4 - Labs/LAB-- Hands-On Tmux - Terminal Multiplier.md",
-    "course-01-devops-prerequisites/Module 4 - Labs/LAB-- Exploring systemd in Practice.md"
+    "course-01-devops-prerequisites/Module 4 - Labs/LAB-- Hands-On Tmux - Terminal Multiplier.md"
   ]
 }
