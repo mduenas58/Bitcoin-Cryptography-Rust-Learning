@@ -27,12 +27,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "course-04-docker-basics/Linux post-installation steps for Docker Engine.md",
+                "file": "course-01-devops-prerequisites/Module 1 – DevOps Tools and Linux/tmux config file example.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Linux post-installation steps for Docker Engine"
+              "title": "tmux config file example"
             }
           }
         ],
@@ -198,23 +198,24 @@
       "bases:Create new base": false
     }
   },
-  "active": "dd5f225e64bf5ec6",
+  "active": "deb8ea1f7b44323e",
   "lastOpenFiles": [
+    "course-01-devops-prerequisites/Module 1 – DevOps Tools and Linux/tmux — Linux manual page.md",
+    "course-01-devops-prerequisites/Difference between automating a task.md",
+    "course-01-devops-prerequisites/Debugging scenarios.md",
+    "course-01-devops-prerequisites/Connecting Individual Skills to the DevOps Workflow.md",
+    "course-01-devops-prerequisites/Module 2 – Networking/Networking Quiz.md",
+    "course-01-devops-prerequisites/Module 1 – DevOps Tools and Linux/Fixed .vimrc.md",
+    "course-04-docker-basics/Linux post-installation steps for Docker Engine.md",
     "course-04-docker-basics/docker-compose.yml.md",
     "course-04-docker-basics/docker-compose.yml",
-    "course-04-docker-basics/Linux post-installation steps for Docker Engine.md",
     "course-04-docker-basics/🐳Complete Guide to Docker Compose--From Basics to Production.md",
-    "course-01-devops-prerequisites/Debugging scenarios.md",
     "course-04-docker-basics/🐳 Comprehensive Docker Commands Cheat Sheet.md",
-    "course-01-devops-prerequisites/Difference between automating a task.md",
     "course-01-devops-prerequisites/Experienced DevOps engineers.md",
     "course-01-devops-prerequisites/Manual Tasks to Automated Workflows.md",
-    "course-01-devops-prerequisites/tmux config file example.md",
-    "course-01-devops-prerequisites/tmux — Linux manual page.md",
-    "course-01-devops-prerequisites/The `ip` command on Linux.md",
-    "course-01-devops-prerequisites/Networking Quiz.md",
+    "course-01-devops-prerequisites/Module 1 – DevOps Tools and Linux/tmux config file example.md",
+    "course-01-devops-prerequisites/Module 2 – Networking/The `ip` command on Linux.md",
     "course-01-devops-prerequisites/How does manually editing configuration files.md",
-    "course-01-devops-prerequisites/Connecting Individual Skills to the DevOps Workflow.md",
     "course-05-kubernetes-basics/GUI-based vs. command-line interfaces.md",
     "course-03-jenkins-beginners/DevOps pipeline.md",
     "course-03-jenkins-beginners/Module 5 - Labs/Comprehensive Jenkins Tutorial.md",
