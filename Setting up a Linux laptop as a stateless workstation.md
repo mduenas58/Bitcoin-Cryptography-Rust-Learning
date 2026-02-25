@@ -675,3 +675,887 @@ Would you like me to elaborate on any specific aspect, such as Kubernetes deploy
 
 ---
 
+## Kubernetes deployment specifics
+
+Deploying an LND HA cluster with etcd on Kubernetes requires careful attention to stateful workload patterns, shared data access, and readiness semantics. Based on the search results and previous discussion, here are the specific Kubernetes deployment configurations you'll need.
+
+## 📦 StatefulSet Configuration with etcd Support
+
+Your LND nodes must run as **StatefulSets** to guarantee stable network identities and persistent storage ordering:
+
+```yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: lnd-ha
+  namespace: bitcoin
+spec:
+  serviceName: lnd-ha
+  replicas: 3
+  selector:
+    matchLabels:
+      app: lnd-ha
+  template:
+    metadata:
+      labels:
+        app: lnd-ha
+    spec:
+      containers:
+      - name: lnd
+        image: lightninglabs/lnd:v0.18.3-beta
+        args:
+        - "--db.backend=etcd"
+        - "--db.etcd.host=etcd-cluster:2379"
+        - "--cluster.enable-leader-election=true"
+        - "--cluster.leader-elector=etcd"
+        - "--cluster.etcd-election-prefix=/lnd/cluster-leader"
+        - "--cluster.id=lnd-$(POD_NAME)"
+        - "--cluster.leader-session-ttl=100"
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        volumeMounts:
+        - name: lnd-data
+          mountPath: /root/.lnd
+        - name: shared-graph
+          mountPath: /root/.lnd/graph
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - |
+              set -e; set -o pipefail;
+              curl -s -k -o - https://localhost:8080/v1/state |
+              jq -e '.State | IN("NON_EXISTING", "LOCKED", "UNLOCKED", "RPC_ACTIVE")'
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          failureThreshold: 3
+      volumes:
+      - name: shared-graph
+        persistentVolumeClaim:
+          claimName: lnd-graph-pvc
+```
+
+The key elements here are:
+- **Dynamic cluster ID** using `$(POD_NAME)` ensures each node has a unique identifier for leader election 
+- **Readiness probe** checks for `WAITING_TO_START` state - if the node is waiting to become leader, it shouldn't receive traffic 
+- **Separate graph volume** improves performance by keeping non-critical data local 
+
+## 🔗 Headless Service for Stable Discovery
+
+Since etcd needs to discover all LND instances, use a headless service:
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: lnd-ha
+  namespace: bitcoin
+spec:
+  clusterIP: None
+  selector:
+    app: lnd-ha
+  ports:
+  - name: p2p
+    port: 9735
+    targetPort: 9735
+  - name: rpc
+    port: 10009
+    targetPort: 10009
+```
+
+This enables DNS resolution like `lnd-ha-0.lnd-ha.bitcoin.svc.cluster.local` for each pod.
+
+## 🗄️ etcd Cluster Deployment
+
+For LND HA, run a dedicated etcd cluster with proper resource limits and increased transaction limits :
+
+```yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: etcd-cluster
+  namespace: bitcoin
+spec:
+  serviceName: etcd-cluster
+  replicas: 3
+  selector:
+    matchLabels:
+      app: etcd-cluster
+  template:
+    metadata:
+      labels:
+        app: etcd-cluster
+    spec:
+      containers:
+      - name: etcd
+        image: quay.io/coreos/etcd:v3.5.10
+        command:
+        - /usr/local/bin/etcd
+        - --name=$(POD_NAME)
+        - --data-dir=/etcd-data
+        - --listen-client-urls=http://0.0.0.0:2379
+        - --advertise-client-urls=http://$(POD_NAME).etcd-cluster:2379
+        - --listen-peer-urls=http://0.0.0.0:2380
+        - --initial-advertise-peer-urls=http://$(POD_NAME).etcd-cluster:2380
+        - --initial-cluster=etcd-0=http://etcd-0.etcd-cluster:2380,etcd-1=http://etcd-1.etcd-cluster:2380,etcd-2=http://etcd-2.etcd-cluster:2380
+        - --initial-cluster-state=new
+        - --max-txn-ops=16384
+        - --max-request-bytes=104857600
+        - --quota-backend-bytes=8589934592
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        ports:
+        - containerPort: 2379
+          name: client
+        - containerPort: 2380
+          name: peer
+        volumeMounts:
+        - name: etcd-data
+          mountPath: /etcd-data
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "500m"
+          limits:
+            memory: "4Gi"
+            cpu: "1"
+  volumeClaimTemplates:
+  - metadata:
+      name: etcd-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 20Gi
+```
+
+The critical parameters here are `max-txn-ops=16384` and `max-request-bytes=104857600`, which prevent etcd from rejecting LND's large graph update transactions . The `quota-backend-bytes=8589934592` (8 GiB) matches the recommended etcd database size limit .
+
+## 📁 Shared Storage for Graph Data
+
+Since graph data isn't stored in etcd for performance reasons , all LND pods need access to the same graph data:
+
+```yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: lnd-graph-pv
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteMany
+  nfs:
+    server: nfs-server.internal
+    path: "/lnd-graph"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: lnd-graph-pvc
+  namespace: bitcoin
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 50Gi
+```
+
+For production, consider using a CSI driver that supports `ReadWriteMany` across zones, such as:
+- **NFS** (simple but slower)
+- **Longhorn** (Kubernetes-native block storage with RWX support)
+- **CephFS** (production-ready but complex)
+
+## 🔍 Pod Topology Spread for High Availability
+
+To ensure your LND pods survive node or zone failures, use topology spread constraints :
+
+```yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: lnd-ha
+spec:
+  # ... previous configuration ...
+  template:
+    spec:
+      topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: topology.kubernetes.io/zone
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels:
+            app: lnd-ha
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels:
+            app: lnd-ha
+```
+
+This ensures:
+- Pods are evenly distributed across availability zones (zone-level failure tolerance) 
+- No two pods run on the same node (node-level failure tolerance) 
+
+For multi-zone clusters, also configure your etcd cluster similarly to spread replicas across zones.
+
+## 🚦 LoadBalancer for P2P Traffic
+
+To expose the Lightning P2P port to external peers:
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: lnd-p2p
+  namespace: bitcoin
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"  # For AWS
+    service.beta.kubernetes.io/azure-load-balancer-internal: "false"  # For Azure
+spec:
+  type: LoadBalancer
+  selector:
+    app: lnd-ha
+  ports:
+  - name: p2p
+    port: 9735
+    targetPort: 9735
+    protocol: TCP
+  externalTrafficPolicy: Local  # Preserves client IP
+```
+
+The `externalTrafficPolicy: Local` setting preserves the original peer IP address, which is important for some Lightning network features and DoS protection.
+
+## 🔐 Secret Management for Wallet Password
+
+For auto-unlock, store the wallet password securely:
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: lnd-wallet-password
+  namespace: bitcoin
+type: Opaque
+data:
+  password: <base64-encoded-password>
+---
+# In LND StatefulSet
+env:
+- name: WALLET_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: lnd-wallet-password
+      key: password
+args:
+- "--wallet-password=$(WALLET_PASSWORD)"
+- "--auto-unlock=true"
+```
+
+⚠️ **Security warning**: Kubernetes Secrets are base64-encoded, not encrypted. For production, use:
+- **External Secrets Operator** with HashiCorp Vault
+- **Sealed Secrets** for GitOps workflows
+- **SOPS** with KMS encryption
+
+## 🔄 Backup Strategy for etcd
+
+Regular etcd backups are critical for disaster recovery . Deploy a CronJob:
+
+```yaml
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: etcd-backup
+  namespace: bitcoin
+spec:
+  schedule: "0 */6 * * *"  # Every 6 hours
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: backup
+            image: bitnami/etcd:latest
+            command:
+            - /bin/sh
+            - -c
+            - |
+              ETCDCTL_API=3 etcdctl \
+                --endpoints=http://etcd-cluster:2379 \
+                snapshot save /backup/etcd-snapshot-$(date +%Y%m%d-%H%M%S).db
+            volumeMounts:
+            - name: backup-storage
+              mountPath: /backup
+          restartPolicy: OnFailure
+          volumes:
+          - name: backup-storage
+            persistentVolumeClaim:
+              claimName: etcd-backup-pvc
+```
+
+For S3-compatible storage (like Linode OBJ), you can use the etcd-backup-restore tool .
+
+## 🏁 Production Deployment Checklist
+
+Before deploying to mainnet:
+
+1. ✅ **Multi-zone cluster**: Deploy Kubernetes nodes across ≥3 availability zones 
+2. ✅ **etcd replication**: 3 replicas spread across zones 
+3. ✅ **PodAntiAffinity**: Prevent LND pods from co-locating 
+4. ✅ **Resource limits**: etcd: 4GB RAM minimum; LND: 2GB RAM minimum
+5. ✅ **Persistent volumes**: SSD-backed storage for low latency
+6. ✅ **Network policies**: Restrict RPC/gRPC access to internal cluster only
+7. ✅ **Monitoring**: Prometheus metrics from etcd and LND
+8. ✅ **Backups**: Automated etcd snapshots to off-cluster storage
+
+Would you like me to elaborate on any specific component, such as the Prometheus monitoring configuration for HA detection, or GitOps workflows for managing these manifests?
+
+---
+
+## GitOps workflows for managing these manifests
+
+Implementing GitOps workflows for managing your LND HA Kubernetes manifests involves treating your Git repository as the single source of truth, with automated reconciliation to the cluster. Based on the search results and Kubernetes best practices, here's a comprehensive GitOps strategy covering the entire lifecycle.
+
+## 🏗️ GitOps Architecture Overview
+
+A production-ready GitOps workflow for LND HA consists of:
+
+```mermaid
+flowchart TD
+    subgraph Git Repository
+        A[Manifests Repository]
+        A --> B[etcd Base]
+        A --> C[LND Base]
+        A --> D[Encrypted Secrets]
+        A --> E[Kustomize Overlays<br/>dev/staging/prod]
+    end
+
+    subgraph Flux CD
+        F[Flux Controller]
+        G[Source Controller]
+        H[Kustomize Controller]
+        I[Helm Controller]
+    end
+
+    subgraph Kubernetes Cluster
+        J[etcd StatefulSet]
+        K[LND HA StatefulSet]
+        L[Services/LoadBalancers]
+        M[Secrets<br/>Decrypted]
+    end
+
+    subgraph External
+        N[Container Registry]
+        O[KMS/Vault]
+    end
+
+    Git --> Flux
+    Flux -->|Reconcile| Cluster
+    Secrets -->|SOPS Decrypt| Flux
+    O -->|Key Management| Secrets
+```
+
+## 📁 Repository Structure
+
+Organize your manifests for clarity and environment isolation:
+
+```bash
+lnd-infrastructure/
+├── flux/                          # Flux system components
+│   ├── gotk-components.yaml       # Flux installation
+│   └── gotk-sync.yaml            # Flux sync configuration
+├── clusters/
+│   ├── production/
+│   │   ├── flux-config/          # Production Flux config
+│   │   │   ├── kustomization.yaml
+│   │   │   └── sync.yaml
+│   │   └── infrastructure/        # Environment-specific overlays
+│   │       ├── kustomization.yaml
+│   │       └── namespace.yaml
+│   └── staging/
+│       └── ...                    # Similar structure
+├── infrastructure/
+│   ├── etcd/
+│   │   ├── base/
+│   │   │   ├── kustomization.yaml
+│   │   │   ├── statefulset.yaml
+│   │   │   ├── service.yaml
+│   │   │   └── pvc.yaml
+│   │   └── overlays/
+│   │       ├── production/
+│   │       │   ├── kustomization.yaml
+│   │       │   ├── replicas.yaml     # Patch: 5 replicas
+│   │       │   └── resources.yaml    # Larger resource limits
+│   │       └── staging/
+│   │           └── ...               
+│   └── lnd/
+│       ├── base/
+│       │   ├── kustomization.yaml
+│       │   ├── statefulset.yaml
+│       │   ├── service.yaml
+│       │   ├── p2p-service.yaml
+│       │   └── shared-graph-pvc.yaml
+│       └── overlays/
+│           ├── production/
+│           │   ├── kustomization.yaml
+│           │   ├── replica-count.yaml
+│           │   ├── topology-spread.yaml
+│           │   └── sealed-secret.yaml   # Encrypted wallet password
+│           └── staging/
+│               └── ...
+└── secrets/                        # Encrypted secrets (SOPS)
+    ├── .sops.yaml                  # SOPS configuration
+    ├── production/
+    │   ├── lnd-wallet-secret.yaml.encrypted
+    │   └── etcd-auth.yaml.encrypted
+    └── staging/
+        └── ...
+```
+
+## 🔐 Secrets Management with SOPS and Flux
+
+Based on Flux CD's official documentation, managing secrets in GitOps requires encryption at rest . SOPS with Flux provides a secure, declarative approach:
+
+### 1. Install SOPS and Configure Age Key
+
+```bash
+# Generate Age key pair (or use cloud KMS)
+age-keygen -o age.key
+
+# Create .sops.yaml in repository root
+cat > .sops.yaml <<EOF
+creation_rules:
+  - path_regex: clusters/production/.*\.encrypted\.yaml$
+    age: age1...  # Your public key
+  - path_regex: clusters/staging/.*\.encrypted\.yaml$
+    age: age1...  # Different key per environment
+EOF
+```
+
+### 2. Create and Encrypt Secrets
+
+```yaml
+# secrets/lnd-wallet-secret.yaml (plaintext - NEVER COMMIT)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: lnd-wallet-password
+  namespace: bitcoin
+type: Opaque
+stringData:
+  password: "your-very-secure-wallet-password"
+```
+
+```bash
+# Encrypt with SOPS
+sops --encrypt \
+  --encrypted-regex '^(data|stringData)$' \
+  secrets/lnd-wallet-secret.yaml \
+  > clusters/production/infrastructure/lnd/overlays/production/lnd-wallet-secret.encrypted.yaml
+
+# Verify encryption
+sops --decrypt clusters/production/infrastructure/lnd/overlays/production/lnd-wallet-secret.encrypted.yaml
+```
+
+### 3. Configure Flux for SOPS Decryption
+
+Flux can decrypt SOPS-encrypted secrets on-the-fly without additional controllers :
+
+```yaml
+# clusters/production/flux-config/kustomization.yaml
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: infrastructure
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: ./clusters/production/infrastructure
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age  # Secret containing Age private key
+---
+# sops-age Secret must be created manually (out-of-band)
+# kubectl create secret generic sops-age \
+#   --namespace=flux-system \
+#   --from-file=age.agekey=./age.key
+```
+
+## 🔄 Flux Kustomization Structure
+
+Create hierarchical Kustomizations for progressive reconciliation :
+
+```yaml
+# clusters/production/infrastructure/kustomization.yaml
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: infrastructure
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: ./clusters/production/infrastructure
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  healthChecks:
+    - apiVersion: apps/v1
+      kind: StatefulSet
+      name: etcd-cluster
+      namespace: bitcoin
+    - apiVersion: apps/v1
+      kind: StatefulSet
+      name: lnd-ha
+      namespace: bitcoin
+  dependsOn:
+    - name: flux-system  # Wait for Flux itself
+---
+# clusters/production/infrastructure/etcd/kustomization.yaml
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: etcd
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: ./infrastructure/etcd/overlays/production
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  validation: client
+  healthChecks:
+    - kind: StatefulSet
+      name: etcd-cluster
+      namespace: bitcoin
+```
+
+## 🔄 Automated Workflow with Pull Requests
+
+### Feature Branch Workflow
+
+```bash
+# Developer workflow
+git checkout -b feat/increase-etcd-storage
+
+# Edit manifests
+vim infrastructure/etcd/overlays/production/pvc-patch.yaml
+
+# Update Kustomization
+cd infrastructure/etcd/overlays/production
+kustomize edit add patch pvc-patch.yaml
+
+# Commit and push
+git add .
+git commit -m "feat(etcd): increase storage to 100Gi for production"
+git push origin feat/increase-etcd-storage
+```
+
+### CI/CD Integration (GitHub Actions Example)
+
+```yaml
+# .github/workflows/pr-validation.yaml
+name: Validate Manifests
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'infrastructure/**'
+      - 'clusters/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Install kustomize
+        run: |
+          curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+          sudo mv kustomize /usr/local/bin/
+      
+      - name: Validate Kustomize builds
+        run: |
+          for env in production staging; do
+            echo "Validating $env..."
+            kustomize build clusters/$env/infrastructure > /dev/null
+          done
+      
+      - name: Install Flux
+        run: |
+          curl -s https://fluxcd.io/install.sh | sudo bash
+      
+      - name: Run Flux checks
+        run: |
+          flux check --pre
+          for env in production staging; do
+            flux build kustomization infrastructure \
+              --path ./clusters/$env/infrastructure \
+              --kustomization-file ./clusters/$env/flux-config/sync.yaml \
+              --dry-run > /dev/null
+          done
+      
+      - name: Validate SOPS encryption
+        run: |
+          # Ensure no plaintext secrets
+          if grep -r "password:" --include="*.yaml" . | grep -v ".encrypted"; then
+            echo "Found unencrypted secrets!"
+            exit 1
+          fi
+```
+
+## 🔐 Advanced Secret Management Patterns
+
+Based on Flux CD's security recommendations , consider these patterns:
+
+### Pattern 1: External Secrets Operator with Vault
+
+For dynamic secrets and better audit logging:
+
+```yaml
+apiVersion: external-secrets.io/v1beta1
+kind: SecretStore
+metadata:
+  name: vault-backend
+  namespace: bitcoin
+spec:
+  provider:
+    vault:
+      server: "https://vault.example.com"
+      path: "secret"
+      version: "v2"
+      auth:
+        kubernetes:
+          mountPath: "kubernetes"
+          role: "lnd-secrets-reader"
+---
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: lnd-wallet-password
+  namespace: bitcoin
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: vault-backend
+    kind: SecretStore
+  target:
+    name: lnd-wallet-password
+    creationPolicy: Owner
+  data:
+  - secretKey: password
+    remoteRef:
+      key: lnd/production/wallet
+      property: password
+```
+
+### Pattern 2: Sealed Secrets for Simplicity
+
+If you prefer a Kubernetes-native approach:
+
+```bash
+# Install Sealed Secrets controller
+kubectl apply -f https://github.com/bitnami-labs/sealed-secrets/releases/download/v0.24.5/controller.yaml
+
+# Create sealed secret
+kubectl create secret generic lnd-wallet-password \
+  --namespace=bitcoin \
+  --from-literal=password='your-password' \
+  --dry-run=client -o yaml | \
+  kubeseal --format yaml > sealed-lnd-wallet.yaml
+```
+
+## 📊 GitOps for LND HA Specifics
+
+### Managing etcd Cluster Configuration
+
+```yaml
+# infrastructure/etcd/overlays/production/kustomization.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../base
+  - sealed-etcd-auth.yaml
+patches:
+  - target:
+      kind: StatefulSet
+      name: etcd-cluster
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 5
+      - op: add
+        path: /spec/template/spec/containers/0/args/-
+        value: --max-txn-ops=32768
+      - op: add
+        path: /spec/template/spec/containers/0/args/-
+        value: --quota-backend-bytes=17179869184
+```
+
+### LND Configuration with Environment Overlays
+
+```yaml
+# infrastructure/lnd/overlays/production/kustomization.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../base
+  - sealed-lnd-wallet.yaml
+configMapGenerator:
+  - name: lnd-config
+    behavior: merge
+    literals:
+      - cluster.leader-session-ttl=100
+      - cluster.leader-lease-refresh-interval=33
+      - healthcheck.leader.interval=60
+      - db.etcd.host=etcd-cluster:2379
+      - cluster.etcd-election-prefix=/lnd/production/leader
+patches:
+  - target:
+      kind: StatefulSet
+      name: lnd-ha
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 5
+      - op: add
+        path: /spec/template/spec/topologySpreadConstraints
+        value:
+          - maxSkew: 1
+            topologyKey: topology.kubernetes.io/zone
+            whenUnsatisfiable: DoNotSchedule
+            labelSelector:
+              matchLabels:
+                app: lnd-ha
+```
+
+## 🔍 Monitoring GitOps Health
+
+### Flux Alerts for LND HA Events
+
+```yaml
+apiVersion: notification.toolkit.fluxcd.io/v1beta3
+kind: Alert
+metadata:
+  name: lnd-ha-alerts
+  namespace: flux-system
+spec:
+  providerRef:
+    name: slack
+  eventSeverity: info
+  eventSources:
+    - kind: Kustomization
+      name: etcd
+      namespace: flux-system
+    - kind: Kustomization
+      name: lnd
+      namespace: flux-system
+  exclusionList:
+    - "progressing.*"  # Ignore in-progress messages
+```
+
+### Health Checks and Automatic Rollback
+
+```yaml
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: lnd
+  namespace: flux-system
+spec:
+  interval: 5m
+  path: ./infrastructure/lnd/overlays/production
+  prune: true
+  timeout: 3m
+  validation: client
+  force: false  # Don't force apply on conflict
+  healthChecks:
+    - kind: StatefulSet
+      name: lnd-ha
+      namespace: bitcoin
+      check: all  # Wait for all replicas ready
+  rollback:
+    cleanupOnFail: true  # Clean up failed resources
+  dependsOn:
+    - name: etcd
+```
+
+## 🚀 Disaster Recovery with GitOps
+
+### Repository as Backup
+
+Since all manifests are in Git, disaster recovery becomes:
+
+```bash
+# In case of total cluster loss
+# 1. Bootstrap new cluster
+flux bootstrap github \
+  --owner=your-org \
+  --repository=lnd-infrastructure \
+  --branch=main \
+  --path=clusters/production/flux-config \
+  --personal
+
+# 2. Flux will automatically reconcile everything
+# 3. etcd snapshots can be restored separately
+```
+
+### etcd Snapshot Management via GitOps
+
+```yaml
+# infrastructure/etcd-cronjob/base/cronjob.yaml
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: etcd-backup
+  namespace: bitcoin
+spec:
+  schedule: "0 */6 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: backup
+            image: bitnami/etcd:latest
+            env:
+            - name: BACKUP_PATH
+              valueFrom:
+                configMapKeyRef:
+                  name: backup-config
+                  key: path
+            command:
+            - /bin/sh
+            - -c
+            - |
+              ETCDCTL_API=3 etcdctl \
+                --endpoints=http://etcd-cluster:2379 \
+                snapshot save /backup/etcd-snapshot-$(date +%Y%m%d-%H%M%S).db
+```
+
+## ✅ Production Readiness Checklist
+
+- [ ] **Secret rotation policy**: Automate using External Secrets Operator with Vault 
+- [ ] **Key segregation**: Never store encryption keys with ciphertext in same repo 
+- [ ] **Audit logging**: Enable Flux and Kubernetes audit logs for secret access 
+- [ ] **Ephemeral secrets**: Use cloud instance metadata tokens where possible 
+- [ ] **Disaster recovery testing**: Regularly restore from Git in staging environment
+- [ ] **RBAC limits**: Restrict who can approve PRs modifying secrets
+- [ ] **Single points of failure**: Ensure KMS/Vault is highly available 
+
+Would you like me to elaborate on any specific GitOps component, such as integrating with specific cloud KMS providers, setting up multi-cluster synchronization, or implementing progressive delivery for LND updates?
