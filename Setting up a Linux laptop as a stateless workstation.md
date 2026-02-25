@@ -190,3 +190,120 @@ If you're interested in trying Fedora Sway Atomic:
 4. Expect to use Flatpak for most applications rather than traditional package installation
 
 Would you like more details about any specific aspect of Fedora Sway Atomic, such as its workflow, package management approach, or how it compares to traditional Fedora Sway Spin?
+
+---
+
+## WorkFlow
+
+Navigating the workflow of Fedora Sway Atomic is a bit different from traditional Linux distributions. Its power lies in a clear separation between the **immutable operating system**, your **applications**, and your **user configuration**. Here’s a detailed look at how to interact with each layer.
+
+### 🧱 The Core Workflow: Three Layers
+
+Your daily workflow will involve three distinct areas, each managed with its own set of tools.
+
+| Layer | Purpose | Key Management Tool | Reboot Required? |
+| :--- | :--- | :--- | :--- |
+| **1. Operating System (OS)** | The read-only base system, including core libraries and the Sway compositor itself. | `rpm-ostree`  | Yes, for most changes . |
+| **2. Applications** | Your GUI apps, like web browsers, editors, and utilities. | `flatpak`  | No. |
+| **3. Development & CLI Tools** | Command-line tools, language servers, and development dependencies. | `toolbox` (or `distrobox`)  | No. |
+
+---
+
+### 🧩 Layer 1: Managing the Immutable OS with `rpm-ostree`
+
+This is where you interact with the core system. Because the root filesystem is read-only, you don't use `dnf`. Instead, you use `rpm-ostree` to manage the system image .
+
+- **Updating the System**: To update your entire OS to the latest version, you would use:
+    ```bash
+    rpm-ostree update
+    ```
+    After the update is downloaded and composed, you simply reboot to start using the new version .
+
+- **Installing System Packages (Layering)**: For software that isn't available as a Flatpak or suitable for a toolbox (like drivers or firmware), you can layer it directly onto your system . This creates a new, custom image layer.
+    ```bash
+    # Example: Installing Vim on the host system (though toolbox is often better for this)
+    rpm-ostree install vim
+    ```
+    After running this command, you **must reboot** for the change to take effect . You can see your current deployments and layered packages with `rpm-ostree status` .
+
+- **The Power of Rollback**: If an update or a layered package causes issues, you can trivially roll back to your previous working setup. The system keeps the last two or three deployments, and you can select the old one from the boot menu .
+
+### 📦 Layer 2: Installing Applications with Flatpak
+
+Flatpak is the primary and recommended way to install GUI applications . It keeps apps containerized and separate from the host system.
+
+- **Enabling Flathub**: The default Fedora repository has a limited selection. You'll almost certainly want to enable **Flathub**, the main repository for Flatpak apps .
+    ```bash
+    flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+    ```
+
+- **Installing an App**: Once Flathub is set up, you can install applications. For example, to install Firefox:
+    ```bash
+    flatpak install flathub org.mozilla.firefox
+    ```
+    After installation, the app will appear in your application launcher (which you can open with `Win+D`) . You don't need to reboot.
+
+### 🛠️ Layer 3: Development & CLI Tools with Toolbox
+
+Toolboxes are mutable containerized environments based on the standard Fedora Workstation image . They are perfect for development work because they give you full access to `dnf` without compromising the stability of your host OS.
+
+- **Creating and Entering a Toolbox**: You can create a new toolbox and enter it with simple commands. Inside, you have full `dnf` access to install anything you need.
+    ```bash
+    # Create a new toolbox (e.g., 'fedora-toolbox-41')
+    toolbox create
+
+    # Enter the toolbox
+    toolbox enter
+    ```
+
+- **Installing Tools Inside**: Once inside the toolbox, you can use `sudo dnf install` for compilers, debuggers, language servers, or any other tool without affecting your host system .
+
+### 🖥️ The Sway Experience: First Steps
+
+When you first log in, the keyboard-driven nature of Sway is immediately apparent. Here are the essential shortcuts to get you started :
+
+| Shortcut | Action |
+| :--- | :--- |
+| **`Win+Enter`** | Open a terminal (the default terminal is **foot**) . |
+| **`Win+D`** | Open the application launcher (**rofi**) . |
+| **`Win+Shift+Q`** | Close the active window . |
+| **`Win+<arrow keys>`** | Change focus to another window . |
+| **`Win+Shift+<arrow keys>`** | Move the active window . |
+| **`Win+<number>`** | Switch to a different workspace . |
+| **`Win+Shift+<number>`** | Move the active window to a different workspace . |
+| **`Win+Shift+C`** | Reload the Sway configuration file (after making changes) . |
+
+> A quick tip: The default terminal, **foot**, uses `Ctrl+Shift+C` and `Ctrl+Shift+V` for copy and paste, which is a common point of confusion for new users .
+
+### ⚙️ Personalizing Your Environment
+
+Your user customizations live in your home directory, which is writable. This is where you'll configure Sway and your tools.
+
+- **Sway Configuration**: The system-wide configuration is located at `/etc/sway/config` . To make your own customizations without editing system files, you can create a personal config directory:
+    ```bash
+    mkdir -p ~/.config/sway/config.d
+    ```
+    You can then place configuration files (e.g., `~/.config/sway/config.d/keyboard.conf`) here. After making changes, reload Sway with `Win+Shift+C` .
+    - **Example: Setting your keyboard layout** (e.g., to Japanese) :
+        ```
+        # In ~/.config/sway/config.d/keyboard.conf
+        input * {
+            xkb_layout "jp"
+        }
+        ```
+    - **Example: Auto-starting a program** (like the Fcitx5 input method) :
+        ```
+        # In ~/.config/sway/config.d/fcitx5.conf
+        exec fcitx5 -r -d
+        ```
+
+- **Terminal Customization**: You can override the default foot terminal settings by copying the system configuration to your home directory and editing it .
+    ```bash
+    cp /etc/xdg/foot/foot.ini ~/.config/foot/foot.ini
+    # Then edit ~/.config/foot/foot.ini, for example to change the font size
+    ```
+
+This layered approach—immutable OS, Flatpak apps, and mutable toolboxes—creates a robust and reliable system that is also incredibly flexible for development work . It might take a little getting used to, but it provides a clean and stable foundation for a keyboard-focused workflow.
+
+What kind of development work are you planning to do on this setup? Knowing your primary tools might help with more specific tips.
+
