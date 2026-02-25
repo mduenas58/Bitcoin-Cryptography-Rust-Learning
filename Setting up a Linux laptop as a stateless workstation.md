@@ -445,3 +445,233 @@ Would you like a deeper dive into a specific area, such as configuring the `etcd
 
 ## Configuring the etcd backend for LND high availability
 
+Configuring an etcd backend for LND high availability involves building LND with etcd support, setting up an etcd cluster, configuring LND instances to use etcd as the database and for leader election, and implementing proper failover and readiness mechanisms.
+
+Based on the search results, I'll provide you with a comprehensive guide covering both the conceptual architecture and practical configuration steps.
+
+## 🏗️ Understanding LND HA with etcd
+
+### How It Works
+
+In a highly available LND cluster with etcd:
+
+- **Multiple LND nodes** share the same identity and connect to the same etcd cluster for state storage 
+- **Leader election** ensures only one node (the leader) actively processes payments and channel operations 
+- **Followers** remain on standby, waiting to take over if the leader fails 
+- **Critical data** (wallet data, channel states) is stored in etcd and replicated across all nodes 
+- **Non-critical data** (graph data, macaroons) remains local for performance 
+
+## 🔧 Step-by-Step Configuration
+
+### 1. Build LND with etcd Support
+
+First, compile LND with the required build tags:
+
+```bash
+git clone --branch v0.18.3-beta https://github.com/lightningnetwork/lnd.git
+cd lnd
+make install tags="kvdb_etcd watchtowerrpc"
+```
+
+The `kvdb_etcd` tag is essential - without it, the binary won't include the etcd driver .
+
+### 2. Set Up etcd Cluster
+
+For production, run a 3-5 node etcd cluster. Here's a minimal etcd configuration:
+
+```bash
+# On each etcd node, start with appropriate configuration
+./etcd \
+  --name etcd-1 \
+  --initial-advertise-peer-urls http://192.168.1.10:2380 \
+  --listen-peer-urls http://0.0.0.0:2380 \
+  --advertise-client-urls http://192.168.1.10:2379 \
+  --listen-client-urls http://0.0.0.0:2379 \
+  --initial-cluster etcd-1=http://192.168.1.10:2380,etcd-2=http://192.168.1.11:2380,etcd-3=http://192.168.1.12:2380 \
+  --initial-cluster-state new \
+  --max-txn-ops=16384 \
+  --max-request-bytes=104857600
+```
+
+The large `max-txn-ops` and `max-request-bytes` values are currently recommended for LND .
+
+### 3. Configure LND for etcd
+
+Create an `lnd.conf` file for each LND node with etcd configuration:
+
+```ini
+[Application Options]
+# Node identifier - must be unique per node
+alias=MY_LND_CLUSTER
+color=#3399ff
+
+[etcd]
+# Database backend selection
+db.backend=etcd
+
+# etcd connection settings
+db.etcd.host=192.168.1.10:2379,192.168.1.11:2379,192.168.1.12:2379
+db.etcd.port=2379
+db.etcd.disabletls=true  # Use false with proper TLS in production
+
+# Optional authentication
+; db.etcd.user=myuser
+; db.etcd.pass=mypassword
+
+# Optional namespace to isolate LND data
+; db.etcd.namespace=/lnd/cluster1
+
+[Cluster]
+# Enable leader election
+cluster.enable-leader-election=true
+cluster.leader-elector=etcd
+
+# Election configuration
+cluster.etcd-election-prefix=/lnd/cluster-leader
+cluster.id=lnd-node-1  # Unique ID for each node
+cluster.leader-session-ttl=100  # Session TTL in seconds
+```
+
+Or via command line:
+
+```bash
+./lnd \
+  --db.backend=etcd \
+  --db.etcd.host=192.168.1.10:2379,192.168.1.11:2379,192.168.1.12:2379 \
+  --db.etcd.disabletls \
+  --cluster.enable-leader-election \
+  --cluster.leader-elector=etcd \
+  --cluster.etcd-election-prefix=/lnd/cluster-leader \
+  --cluster.id=lnd-node-1 \
+  --cluster.leader-session-ttl=100
+```
+
+### 4. Initialize the Cluster
+
+Start the first node to create the wallet:
+
+```bash
+# Start first node
+./lnd --lnddir=~/.lnd-node1
+
+# In another terminal, create wallet
+lncli --lnddir=~/.lnd-node1 create
+```
+
+Then start additional nodes with the **same wallet password** but different `cluster.id`:
+
+```bash
+# Start second node with different cluster.id
+./lnd --lnddir=~/.lnd-node2 \
+  --db.backend=etcd \
+  --db.etcd.host=192.168.1.10:2379 \
+  --cluster.enable-leader-election \
+  --cluster.id=lnd-node-2
+```
+
+## 🔄 Critical Configuration Parameters
+
+### Session TTL and Failover Timing
+
+Based on real-world testing and bug fixes, these parameters are crucial for preventing split-brain scenarios :
+
+| Parameter | Recommended Value | Description |
+|-----------|-------------------|-------------|
+| `cluster.leader-session-ttl` | 100 seconds | etcd lease TTL for leader session |
+| `healthcheck.leader.interval` | 60 seconds | How often to check leader health |
+| `cluster.leader-lease-refresh-interval` | 33 seconds | Lease refresh (1/3 of TTL) |
+
+With this configuration:
+- Lost leader takes **27-60 seconds** to detect and initiate shutdown
+- New leader election takes **66-100 seconds**
+- No overlap period, preventing multiple active leaders 
+
+### Required etcd Tuning
+
+```bash
+# etcd must be started with these increased limits
+--max-txn-ops=16384
+--max-request-bytes=104857600
+```
+
+These settings are necessary because LND may store large graph data in etcd .
+
+## 🔍 Monitoring and Readiness
+
+### Identifying the Leader
+
+To know which node is currently the leader :
+
+```bash
+# Using etcd CLI
+etcdctl get /lnd/cluster-leader --prefix
+
+# Or programmatically
+./lncli getinfo | grep identity_pubkey  # All nodes show same identity
+```
+
+### Kubernetes Readiness Probe
+
+For Kubernetes deployments, use a readiness probe that checks if the node is ready to serve traffic :
+
+```yaml
+readinessProbe:
+  exec:
+    command:
+    - /bin/sh
+    - -c
+    - |
+      set -e; set -o pipefail;
+      curl -s -k -o - https://localhost:8080/v1/state |
+      jq -e '.State | IN("NON_EXISTING", "LOCKED", "UNLOCKED", "RPC_ACTIVE")'
+  periodSeconds: 5
+  failureThreshold: 3
+```
+
+The `WAITING_TO_START` state indicates the node is waiting to become leader and isn't ready .
+
+## ⚠️ Important Considerations
+
+### Data Replication Limitations
+
+Not all data is stored in etcd :
+
+| Data Type | Storage Location | Notes |
+|-----------|------------------|-------|
+| Wallet data | etcd | Contains key material and node identity |
+| Channel state | etcd | Critical for operations |
+| Graph data | Local bbolt | Performance optimization |
+| Macaroon DB | Local | Authentication tokens |
+| Watchtower client DB | Local | Watchtower data |
+
+**Recommendation**: Mount the LND data directory on shared storage that all nodes can access to ensure graph sync doesn't delay failover .
+
+### Performance Characteristics
+
+Based on benchmarks :
+
+- **etcd** provides good all-around performance with fast failover
+- **PostgreSQL** excels at receiving payments but sending is slower (expected to improve)
+- **Ceph RBD** is not recommended due to high storage consumption
+- Storage consumption with etcd is medium (better than Ceph, slightly higher than PostgreSQL)
+
+### Known Issues and Fixes
+
+A critical bug where nodes wouldn't resign leadership was fixed in PR #8938. With the configuration above (session TTL 100s, healthcheck interval 60s), multiple active leaders cannot occur .
+
+## 🏁 Production Checklist
+
+Before deploying to mainnet:
+
+1. ✅ Use LND v0.18.3-beta or later (includes critical fixes)
+2. ✅ Configure etcd with TLS certificates 
+3. ✅ Set appropriate session TTL and healthcheck intervals
+4. ✅ Implement monitoring for leader status and etcd health
+5. ✅ Test failover scenarios in a staging environment
+6. ✅ Ensure all nodes have access to shared volume for graph data
+7. ✅ Set up regular etcd backups
+
+Would you like me to elaborate on any specific aspect, such as Kubernetes deployment specifics, TLS configuration for etcd, or integration with your existing Fedora Sway Atomic setup?
+
+---
+
