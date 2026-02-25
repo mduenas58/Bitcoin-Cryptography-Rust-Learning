@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "course-01-devops-prerequisites/Module 4 - Labs/Setting up a Linux laptop as a stateless workstation.md",
+                "file": "course-01-devops-prerequisites/Module 4 - Labs/LAB--Setting up a Linux laptop as a stateless workstation.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Setting up a Linux laptop as a stateless workstation"
+              "title": "LAB--Setting up a Linux laptop as a stateless workstation"
             }
           }
         ]
@@ -183,10 +183,10 @@
       "bases:Create new base": false
     }
   },
-  "active": "deb8ea1f7b44323e",
+  "active": "57cf9f9c5158b9ad",
   "lastOpenFiles": [
     "course-01-devops-prerequisites/Connecting from your Mac to a Fedora 43 KDE Plasma.md",
-    "course-01-devops-prerequisites/Module 4 - Labs/Setting up a Linux laptop as a stateless workstation.md",
+    "course-01-devops-prerequisites/Module 4 - Labs/LAB--Setting up a Linux laptop as a stateless workstation.md",
     "course-05-kubernetes-basics/Install Tools.md",
     "course-05-kubernetes-basics/Kubernetes Architecture.md",
     "course-01-devops-prerequisites/Module 1 – DevOps Tools and Linux/Fixed .vimrc.md",

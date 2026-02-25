@@ -62,7 +62,7 @@ Your Synology NAS must also provide the services that allow the laptop to find a
 1.  **Set up DHCP (Dynamic Host Configuration Protocol)**: The NAS needs to tell your laptop where to find the boot files.
     *   Install a DHCP server on your NAS. The exact method depends on your NAS's Linux distribution (usually a version of DSM). You might need to use `ipkg` or `synopkg` to install a package like `dhcpd` or `dnsmasq`.
     *   Configure the DHCP server to point to the NAS's own IP address for the TFTP server and to provide the bootloader filename. A simplified `dnsmasq` configuration might look like this:
-        ```
+        ```shell
         interface=eth0 # Your NAS's network interface
         dhcp-range=192.168.1.100,192.168.1.200,12h # IP range for clients
         dhcp-boot=pxelinux.0,<your-nas-ip> # Boot file and TFTP server address
