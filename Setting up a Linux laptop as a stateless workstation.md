@@ -107,3 +107,86 @@ Here are your recommended next steps:
 If this seems too complex for your immediate needs, starting with **Synology Drive Client**  for file synchronization is a fantastic way to centralize your data while keeping your laptop's local operating system intact.
 
 Do you have a specific Linux distribution in mind for the laptop? Knowing that could help tailor the OS image creation steps.
+
+---
+
+Fedora Sway Atomic is an official Fedora project that combines the **Sway tiling window manager** with the **rpm-ostree** technology to create an atomic, immutable desktop system . It was previously known as Fedora Sericea before being rebranded under the Fedora Atomic Desktops umbrella .
+
+## Core Architecture
+
+Fedora Sway Atomic is built on several key technologies:
+
+- **Sway WM**: A highly customizable, keyboard-first Wayland window manager 
+- **rpm-ostree**: A hybrid image/package system that combines libostree and libdnf to provide atomic, safe upgrades with local RPM package layering 
+- **Flatpak**: Applications are containerized and installed via Flatpak, providing thousands of open-source and proprietary options 
+- **Podman**: A daemonless container engine for development and running OCI containers 
+
+## Key Features
+
+### Immutable/Atomic Design
+Unlike traditional Linux installations where the root filesystem is writable, Fedora Sway Atomic maintains a read-only operating system core. Updates are applied atomically—they either succeed completely or fail without leaving the system in a partially updated state. You can also roll back to previous system states if an update causes issues .
+
+### Included Applications
+The variant comes with carefully selected lightweight applications that complement its keyboard-driven workflow :
+
+| Category | Applications |
+|----------|--------------|
+| **Internet** | Firefox, NetworkManager Applet, nmcli |
+| **Terminal** | foot (fast, lightweight Wayland terminal) |
+| **Utilities** | swaylock (screen locker), waybar (status bar), rofi (launcher), dunst (notifications), kanshi (display configuration) |
+| **File Management** | Thunar file manager |
+| **Media** | imv (image viewer), light (brightness control) |
+
+## Installation Considerations
+
+### Known Limitations 
+- **Dual booting**: Not fully supported out-of-the-box; manual configuration required with caution
+- **Manual partitioning**: Limited to specific mount points only (/boot, /, /var, and /var subdirectories like /var/home)
+- **LUKS keyboard layout**: The LUKS unlock screen defaults to en-US regardless of installation selection (workaround available via `rpm-ostree initramfs-etc --track=/etc/vconsole.conf`)
+
+### Installation Methods
+You can install Fedora Sway Atomic using:
+- Fedora Media Writer (should list Sway Atomic as an option)
+- Manual download from the Fedora Sway Atomic website
+- Standard installation process similar to other Fedora variants 
+
+## Release Updates
+
+### Fedora 43 (October 2025) 
+- Sway 1.11 included
+- Zstd compressed initrds for faster boot
+- 2GB boot partition by default
+- WireGuard tools added
+- plocate removed
+
+### Fedora 40 (April 2024) 
+- Sway 1.9 included
+- Rebranding to "Fedora Atomic Desktops" family
+- Formerly known as Sericea
+
+## Comparison with Other Atomic Desktops
+
+Fedora Sway Atomic is one of four official Atomic Desktop variants :
+- **Silverblue**: GNOME desktop
+- **Kinoite**: KDE Plasma desktop  
+- **Sway Atomic**: Sway tiling window manager (keyboard-focused)
+- **Budgie Atomic**: Budgie desktop
+
+## Use Cases
+
+Fedora Sway Atomic is particularly well-suited for:
+- Users who prefer keyboard-driven workflows
+- Those wanting an immutable system with atomic updates
+- Developers using containerized workflows (Podman integration)
+- Users who appreciate minimalist, tiling window managers
+- Anyone wanting to experiment with immutable Linux architectures
+
+## Getting Started
+
+If you're interested in trying Fedora Sway Atomic:
+1. Download the installation image from the official Fedora website
+2. Test it in a virtual machine first if uncertain about compatibility
+3. Be aware of the dual-boot and manual partitioning limitations
+4. Expect to use Flatpak for most applications rather than traditional package installation
+
+Would you like more details about any specific aspect of Fedora Sway Atomic, such as its workflow, package management approach, or how it compares to traditional Fedora Sway Spin?
