@@ -13,7 +13,7 @@ type: reference
 ---
 
 ## Part I — Learning the Shell
-
+**Learning the Shell** covers navigation commands, file manipulation, redirection, shell expansion, keyboard shortcuts, permissions, and process management — all with code blocks and reference tables.
 ### Ch 1 · The Shell
 
 The **shell** is a program that takes keyboard commands and passes them to the OS. `bash` is the most common shell on Linux.
@@ -328,7 +328,7 @@ shutdown -r now     # Reboot immediately
 ---
 
 ## Part II — Configuration & Environment
-
+**Configuration & Environment** covers environment variables, shell startup files, and a vim cheat sheet.
 ### Ch 11 · The Environment
 
 ```bash
@@ -402,7 +402,7 @@ n / N               # Next / previous match
 ---
 
 ## Part III — Common Tasks & Essential Tools
-
+**Common Tasks & Essential Tools** covers package management, networking, file search (`find`/`locate`), archiving (`tar`/`rsync`), regex with `grep`, and text processing (`sed`/`awk`).
 ### Ch 14 · Package Management
 
 **Debian/Ubuntu (apt):**
@@ -590,7 +590,7 @@ make clean          # Clean up build files
 ---
 
 ## Part IV — Shell Scripting
-
+**Shell Scripting** covers every scripting concept: variables, functions, `if`/`case`/`for`/`while`, arrays, string manipulation, input handling, debugging flags, and advanced topics like traps and process substitution.
 ### Ch 24 · Writing Your First Script
 
 ```bash
@@ -999,7 +999,7 @@ echo "Task done, exit: $?"
 ---
 
 ## Quick Reference — Most Used Commands
-
+**Quick Reference** block grouping the most-used commands by category — handy for quick lookups in Obsidian. The YAML frontmatter includes `tags`, `source`, and `type` fields for easy filtering.
 ```bash
 # Navigation
 pwd · ls · cd · ls -la
