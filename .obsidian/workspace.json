@@ -214,6 +214,7 @@
   },
   "active": "5260f5f467316c6c",
   "lastOpenFiles": [
+    "course-06-ansible-basics/Ansible-Practice-Labs.pdf",
     "Ansible-Practice-Labs.pdf",
     "DevOps-Study-Roadmap.md",
     "2026-03-08.md",
@@ -248,7 +249,6 @@
     "course-04-docker-basics/Module 4 – Docker Engine and Storage",
     "course-04-docker-basics/Module 3 – Docker Images",
     "course-04-docker-basics/Module 2 – Docker Run",
-    "course-04-docker-basics/Module 1 – Setting up Docker and Basic Docker Commands",
-    "course-03-jenkins-beginners/Module 5 - Labs"
+    "course-04-docker-basics/Module 1 – Setting up Docker and Basic Docker Commands"
   ]
 }
