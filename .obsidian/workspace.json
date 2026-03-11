@@ -41,12 +41,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "DevOps-Study-Roadmap-Overview.md",
+                "file": "2026-03-08.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "DevOps-Study-Roadmap-Overview"
+              "title": "2026-03-08"
             }
           }
         ],
@@ -215,6 +215,7 @@
   "active": "5260f5f467316c6c",
   "lastOpenFiles": [
     "DevOps-Study-Roadmap.md",
+    "2026-03-08.md",
     "DevOps-Study-Roadmap-Overview.md",
     "README.md",
     "DevOps Mastery Roadmap.md",
@@ -241,7 +242,6 @@
     "PROJECT-02-YAML Validator/validators/yaml_validator.py.md",
     "PROJECT-02-YAML Validator/validators",
     "PROJECT-02-YAML Validator/config.py.md",
-    "course-01-devops-prerequisites/Module 4 - Labs/LAB--Setting up a Linux laptop as a stateless workstation.md",
     "course-04-docker-basics/docker-compose.yml",
     "course-04-docker-basics/Module 6 - Labs",
     "course-04-docker-basics/Module 5 – Docker Networking and Registry",
