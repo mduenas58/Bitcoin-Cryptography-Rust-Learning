@@ -214,6 +214,7 @@
   },
   "active": "5260f5f467316c6c",
   "lastOpenFiles": [
+    "Ansible-Practice-Labs.pdf",
     "DevOps-Study-Roadmap.md",
     "2026-03-08.md",
     "DevOps-Study-Roadmap-Overview.md",
@@ -241,7 +242,6 @@
     "PROJECT-02-YAML Validator/YAML Validator Web Application.md",
     "PROJECT-02-YAML Validator/validators/yaml_validator.py.md",
     "PROJECT-02-YAML Validator/validators",
-    "PROJECT-02-YAML Validator/config.py.md",
     "course-04-docker-basics/docker-compose.yml",
     "course-04-docker-basics/Module 6 - Labs",
     "course-04-docker-basics/Module 5 – Docker Networking and Registry",
