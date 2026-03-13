@@ -1,0 +1,5 @@
+# Ignores specific OS-generated files
+.DS_Store # macOS
+
+# Ignore all Obsidian configuration by default
+.obsidian/*
