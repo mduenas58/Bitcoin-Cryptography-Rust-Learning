@@ -60,5 +60,3 @@ These commands are primarily used on test networks or private chains (`-regtest`
 | `setnetworkactive` | Disables or enables all P2P network activity. | `bitcoin-cli setnetworkactive false` |
 
 A best practice is to use `-named` before the command, allowing you to specify arguments by name (`key=value`). This approach is more explicit and less error-prone than relying on positional arguments. For more advanced scripting, you can also use `-stdin` to read sensitive arguments (like passphrases) securely from standard input.
-
-If this list is helpful or if there's a specific task you'd like to accomplish with a different command, feel free to ask.
